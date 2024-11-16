@@ -31,13 +31,11 @@ export default function Providers({ children }) {
         defaultChain: baseSepolia,
       }}
     >
-      <SmartWalletsProvider>
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={config}>
             {children}
           </WagmiProvider>
         </QueryClientProvider>
-      </SmartWalletsProvider>
     </PrivyProvider>
   );
 }

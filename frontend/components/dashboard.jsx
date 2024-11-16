@@ -19,26 +19,30 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { baseSepolia } from "viem/chains";
 import { parseEther } from "viem";
 import { encodeFunctionData } from "viem";
-import {useFundWallet} from '@privy-io/react-auth';
-import {useSetActiveWallet} from '@privy-io/wagmi';
-import {useAccount,useBalance} from 'wagmi';
+import { useFundWallet } from "@privy-io/react-auth";
+import { useSetActiveWallet } from "@privy-io/wagmi";
+import { useAccount, useBalance } from "wagmi";
+import { SignProtocolClient, SpMode, EvmChains } from "@ethsign/sp-sdk";
+import { createWalletClient, custom } from "viem";
+import { isAddress } from "viem";
 
 export function ResponsiveDashboard() {
   const { user, ready } = usePrivy();
   const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [embeddedWallet, setEmbeddedWallet] = useState(null);
-  const {fundWallet} = useFundWallet();
+  const { fundWallet } = useFundWallet();
+  const { setActiveWallet } = useSetActiveWallet();
+
+  const account = useAccount();
 
   const [githubAccessToken, setGithubAccessToken] = useState(null);
   const { ready: walletsReady, wallets } = useWallets();
   const { logout } = useLogout();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { client } = useSmartWallets();
   const balance = useBalance({
     address: embeddedWallet?.address,
     chainId: baseSepolia.id,
@@ -77,12 +81,12 @@ export function ResponsiveDashboard() {
     if (walletsReady && wallets.length > 0) {
       console.log("walletsReady", walletsReady);
       console.log("wallets", wallets);
-      const smartWallet = user?.linkedAccounts?.find(
-        (account) => account.type === "smart_wallet"
-      );
-      console.log("smartWallet", smartWallet);
-      if (smartWallet) {
-        setEmbeddedWallet(smartWallet);
+      const embeddedWallet = getEmbeddedConnectedWallet(wallets);
+      if (embeddedWallet) {
+        (async () => {
+          await setActiveWallet(embeddedWallet);
+          setEmbeddedWallet(embeddedWallet);
+        })();
       }
     }
   }, [walletsReady, wallets]);
@@ -100,7 +104,7 @@ export function ResponsiveDashboard() {
           const events = await response.json();
           setUserEvents(events);
         } catch (error) {
-          console.error('Error fetching user events:', error);
+          console.error("Error fetching user events:", error);
         }
       }
     };
@@ -134,26 +138,6 @@ export function ResponsiveDashboard() {
     },
   ];
 
-  const sendTransaction = async () => {
-    const txHash = await client.sendTransaction({
-      account: client.account,
-      calls: [
-        {
-          to: "0x70F19D04b867431A316D070fa58a22dF02a89c86",
-          data: encodeFunctionData({
-            abi: MINT_ABI,
-            functionName: "mint",
-            args: ["#345123", "345123", client.account.address],
-          }),
-          value: parseEther("0.001"),
-          preVerificationGas: 1000000n,
-        },
-      ],
-    });
-
-    console.log("txHash", txHash);
-  };
-
   const copyToClipboard = async () => {
     if (embeddedWallet?.address) {
       try {
@@ -165,6 +149,52 @@ export function ResponsiveDashboard() {
     }
   };
 
+
+  const attestation = async () => {
+    // send a request to the backend to generate a proof
+    const response = await fetch("http://localhost:3001/generate-proof", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${githubAccessToken}` },
+    });
+    const res = await response.json();
+    const proof = res.proofData;
+
+    const data = {
+      provider: proof.claimInfo.provider,
+      context: proof.claimInfo.context,
+      parameters: proof.claimInfo.parameters,
+      epoch: proof.signedClaim.claim.epoch,
+      identifier: proof.signedClaim.claim.identifier,
+      owner: proof.signedClaim.claim.owner,
+      timestampS: proof.signedClaim.claim.timestampS,
+      signatures: proof.signedClaim.signatures,
+    };
+    try {
+      const provider = await embeddedWallet.getEthereumProvider();
+      const walletClient = createWalletClient({
+        chain: baseSepolia,
+        transport: custom(provider),
+      });
+      const client = new SignProtocolClient(SpMode.OnChain, {
+        chain: EvmChains.baseSepolia,
+        walletClient: walletClient,
+      });
+
+      const createAttestationRes = await client.createAttestation({
+        schemaId: "0x4d5",
+        indexingValue: "123",
+        data: data,
+      });
+      console.log("createAttestationRes", createAttestationRes);
+    } catch (error) {
+      console.error("Failed to create attestation:", error);
+      if (error.message?.includes("name already taken")) {
+        alert("This name has already been taken. Please try a different one.");
+      } else {
+        alert("Failed to create attestation. Please try again.");
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
@@ -194,18 +224,20 @@ export function ResponsiveDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-              <div className="text-3xl font-bold">{(Number(balance.data?.value) / 1e18).toFixed(2)}  ETH</div>
-              <Button 
-                onClick={async () => {
-                  if (embeddedWallet?.address) {
-                    await fundWallet(embeddedWallet.address,{
-                      chain: baseSepolia,
-                    });
-                  }
-                }}
-              >
-                Fund Wallet
-              </Button>
+                <div className="text-3xl font-bold">
+                  {(Number(balance.data?.value) / 1e18).toFixed(2)} ETH
+                </div>
+                <Button
+                  onClick={async () => {
+                    if (embeddedWallet?.address) {
+                      await fundWallet(embeddedWallet.address, {
+                        chain: baseSepolia,
+                      });
+                    }
+                  }}
+                >
+                  Fund Wallet
+                </Button>
               </div>
               <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                 <span>Wallet Address</span>
@@ -227,9 +259,8 @@ export function ResponsiveDashboard() {
               </div>
             </CardContent>
           </Card>
-      
 
-          <Button onClick={sendTransaction}>Send Transaction</Button>
+          <Button onClick={attestation}>Claim free .reporewards</Button>
         </div>
         <Card>
           <CardHeader>
@@ -238,9 +269,14 @@ export function ResponsiveDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             {userEvents.slice(0, 5).map((event, index) => (
-              <div key={index} className="flex items-center justify-between py-2">
+              <div
+                key={index}
+                className="flex items-center justify-between py-2"
+              >
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{event.type.replace('Event', '')}</span>
+                  <span className="text-sm font-medium">
+                    {event.type.replace("Event", "")}
+                  </span>
                   <span className="text-xs text-gray-500">
                     {event.repo.name}
                   </span>
@@ -280,8 +316,8 @@ export function ResponsiveDashboard() {
             <button
               onClick={() => router.push("/dashboard")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/dashboard" 
-                  ? "text-blue-600" 
+                router.pathname === "/dashboard"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >
@@ -291,8 +327,8 @@ export function ResponsiveDashboard() {
             <button
               onClick={() => router.push("/create")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/create" 
-                  ? "text-blue-600" 
+                router.pathname === "/create"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >
@@ -302,8 +338,8 @@ export function ResponsiveDashboard() {
             <button
               onClick={() => router.push("/explore")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/explore" 
-                  ? "text-blue-600" 
+                router.pathname === "/explore"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >

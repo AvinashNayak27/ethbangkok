@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ethsign/sp-sdk": "^0.7.8",
     "@privy-io/react-auth": "^1.94.2",
     "@privy-io/wagmi": "^0.2.12",
     "@radix-ui/react-avatar": "^1.1.1",

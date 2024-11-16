@@ -277,23 +277,35 @@ export function ResponsiveDashboard() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex justify-around py-3">
-            <button 
-              onClick={() => router.push('/dashboard')}
-              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            <button
+              onClick={() => router.push("/dashboard")}
+              className={`flex flex-col items-center space-y-1 ${
+                router.pathname === "/dashboard" 
+                  ? "text-blue-600" 
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
             >
               <Home className="h-5 w-5" />
               <span className="text-xs">Dashboard</span>
             </button>
-            <button 
-              onClick={() => router.push('/create')}
-              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            <button
+              onClick={() => router.push("/create")}
+              className={`flex flex-col items-center space-y-1 ${
+                router.pathname === "/create" 
+                  ? "text-blue-600" 
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
             >
               <PlusSquare className="h-5 w-5" />
               <span className="text-xs">Create</span>
             </button>
-            <button 
-              onClick={() => router.push('/explore')}
-              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            <button
+              onClick={() => router.push("/explore")}
+              className={`flex flex-col items-center space-y-1 ${
+                router.pathname === "/explore" 
+                  ? "text-blue-600" 
+                  : "text-gray-600 hover:text-blue-600"
+              }`}
             >
               <Compass className="h-5 w-5" />
               <span className="text-xs">Explore</span>

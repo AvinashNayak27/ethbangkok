@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowUpRight, Copy } from "lucide-react";
+import { ArrowUpRight, Copy, Home, PlusSquare, Compass } from "lucide-react";
 import {
   usePrivy,
   useWallets,
@@ -43,6 +43,8 @@ export function ResponsiveDashboard() {
     address: embeddedWallet?.address,
     chainId: baseSepolia.id,
   });
+
+  const [userEvents, setUserEvents] = useState([]);
 
   useEffect(() => {
     if (!user && ready) {
@@ -84,6 +86,27 @@ export function ResponsiveDashboard() {
       }
     }
   }, [walletsReady, wallets]);
+
+  useEffect(() => {
+    const fetchUserEvents = async () => {
+      if (userData?.login && githubAccessToken) {
+        try {
+          const response = await fetch(
+            `https://api.github.com/users/${userData.login}/events`,
+            {
+              headers: { Authorization: `Bearer ${githubAccessToken}` },
+            }
+          );
+          const events = await response.json();
+          setUserEvents(events);
+        } catch (error) {
+          console.error('Error fetching user events:', error);
+        }
+      }
+    };
+
+    fetchUserEvents();
+  }, [userData?.login, githubAccessToken]);
 
   const MINT_ABI = [
     {
@@ -168,7 +191,6 @@ export function ResponsiveDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Wallet Balance</CardTitle>
-              <CardDescription>Your current reward balance</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
@@ -205,54 +227,29 @@ export function ResponsiveDashboard() {
               </div>
             </CardContent>
           </Card>
+      
+
           <Button onClick={sendTransaction}>Send Transaction</Button>
-          <Card>
-            <CardHeader>
-              <CardTitle>Contribution Stats</CardTitle>
-              <CardDescription>Your impact on the project</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Merged PRs</span>
-                  <span className="text-sm font-medium">24/50</span>
-                </div>
-                <Progress value={48} />
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Total Contributions</span>
-                <span className="font-medium">127</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Ranking</span>
-                <span className="font-medium">#3 of 156</span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Recent Rewards</CardTitle>
-            <CardDescription>Your latest earned rewards</CardDescription>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Your latest GitHub events</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between py-2 border-b last:border-0"
-                >
-                  <div>
-                    <div className="font-medium">Merged PR #{i}</div>
-                    <div className="text-sm text-gray-500">2 days ago</div>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="font-medium mr-2">+25.00 USDC</span>
-                    <ArrowUpRight className="h-4 w-4 text-green-500" />
-                  </div>
+          <CardContent className="space-y-4">
+            {userEvents.slice(0, 5).map((event, index) => (
+              <div key={index} className="flex items-center justify-between py-2">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">{event.type.replace('Event', '')}</span>
+                  <span className="text-xs text-gray-500">
+                    {event.repo.name}
+                  </span>
                 </div>
-              ))}
-            </div>
+                <span className="text-xs text-gray-500">
+                  {new Date(event.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -275,6 +272,35 @@ export function ResponsiveDashboard() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add the mobile-optimized footer navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="flex justify-around py-3">
+            <button 
+              onClick={() => router.push('/dashboard')}
+              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            >
+              <Home className="h-5 w-5" />
+              <span className="text-xs">Dashboard</span>
+            </button>
+            <button 
+              onClick={() => router.push('/create')}
+              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            >
+              <PlusSquare className="h-5 w-5" />
+              <span className="text-xs">Create</span>
+            </button>
+            <button 
+              onClick={() => router.push('/explore')}
+              className="flex flex-col items-center space-y-1 text-gray-600 hover:text-blue-600"
+            >
+              <Compass className="h-5 w-5" />
+              <span className="text-xs">Explore</span>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

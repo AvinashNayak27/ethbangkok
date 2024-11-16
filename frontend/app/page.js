@@ -3,11 +3,12 @@ import { usePrivy } from "@privy-io/react-auth";
 import { UserPill } from "@privy-io/react-auth/ui";
 import { useOAuthTokens } from "@privy-io/react-auth";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const { login, user } = usePrivy();
   const { authenticated } = usePrivy();
-
+  const router = useRouter();
   const { reauthorize } = useOAuthTokens({
     onOAuthTokenGrant: (tokens, { user }) => {
       localStorage.setItem("github_access_token", tokens.accessToken);
@@ -36,6 +37,12 @@ export default function Home() {
   useEffect(() => {
     refreshOAuthTokens();
   }, [user]);
+
+  useEffect(() => {
+    if (authenticated) {
+      router.push("/dashboard");
+    }
+  }, [authenticated]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-gray-50">

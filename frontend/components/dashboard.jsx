@@ -23,19 +23,26 @@ import { useSmartWallets } from "@privy-io/react-auth/smart-wallets";
 import { baseSepolia } from "viem/chains";
 import { parseEther } from "viem";
 import { encodeFunctionData } from "viem";
-import { parseUnits } from "viem";
+import {useFundWallet} from '@privy-io/react-auth';
+import {useSetActiveWallet} from '@privy-io/wagmi';
+import {useAccount,useBalance} from 'wagmi';
 
 export function ResponsiveDashboard() {
   const { user, ready } = usePrivy();
   const router = useRouter();
   const [userData, setUserData] = useState(null);
   const [embeddedWallet, setEmbeddedWallet] = useState(null);
+  const {fundWallet} = useFundWallet();
 
   const [githubAccessToken, setGithubAccessToken] = useState(null);
   const { ready: walletsReady, wallets } = useWallets();
   const { logout } = useLogout();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { client } = useSmartWallets();
+  const balance = useBalance({
+    address: embeddedWallet?.address,
+    chainId: baseSepolia.id,
+  });
 
   useEffect(() => {
     if (!user && ready) {
@@ -135,6 +142,7 @@ export function ResponsiveDashboard() {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -163,7 +171,20 @@ export function ResponsiveDashboard() {
               <CardDescription>Your current reward balance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">1,234.56 USDC</div>
+              <div className="flex items-center justify-between">
+              <div className="text-3xl font-bold">{(Number(balance.data?.value) / 1e18).toFixed(2)}  ETH</div>
+              <Button 
+                onClick={async () => {
+                  if (embeddedWallet?.address) {
+                    await fundWallet(embeddedWallet.address,{
+                      chain: baseSepolia,
+                    });
+                  }
+                }}
+              >
+                Fund Wallet
+              </Button>
+              </div>
               <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
                 <span>Wallet Address</span>
                 <div className="flex items-center">

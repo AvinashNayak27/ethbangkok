@@ -1,6 +1,9 @@
 "use client";
 
 import { PrivyProvider } from "@privy-io/react-auth";
+import {SmartWalletsProvider} from '@privy-io/react-auth/smart-wallets';
+import {baseSepolia} from 'viem/chains';
+
 
 export default function Providers({ children }) {
   return (
@@ -14,9 +17,12 @@ export default function Providers({ children }) {
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
+        defaultChain: baseSepolia,
       }}
     >
-      {children}
+      <SmartWalletsProvider>
+        {children}
+      </SmartWalletsProvider>
     </PrivyProvider>
   );
 }

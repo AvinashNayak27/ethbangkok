@@ -7,10 +7,13 @@ settings:
 dependencies:
   '@privy-io/react-auth':
     specifier: ^1.94.2
-    version: 1.94.2(@solana/web3.js@1.95.4)(bs58@4.0.1)(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+    version: 1.94.2(@solana/web3.js@1.95.4)(bs58@4.0.1)(permissionless@0.2.17)(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
   '@radix-ui/react-avatar':
     specifier: ^1.1.1
     version: 1.1.1(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+  '@radix-ui/react-dialog':
+    specifier: ^1.1.2
+    version: 1.1.2(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
   '@radix-ui/react-dropdown-menu':
     specifier: ^2.1.2
     version: 2.1.2(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
@@ -32,6 +35,9 @@ dependencies:
   next:
     specifier: 15.0.3
     version: 15.0.3(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+  permissionless:
+    specifier: ^0.2.17
+    version: 0.2.17(viem@2.21.45)
   react:
     specifier: 19.0.0-rc-66855b96-20241106
     version: 19.0.0-rc-66855b96-20241106
@@ -44,6 +50,9 @@ dependencies:
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.4.15)
+  viem:
+    specifier: ^2.21.45
+    version: 2.21.45
 
 devDependencies:
   postcss:
@@ -1144,7 +1153,7 @@ packages:
       zod: 3.23.8
     dev: false
 
-  /@privy-io/js-sdk-core@0.34.1(viem@2.21.45):
+  /@privy-io/js-sdk-core@0.34.1(permissionless@0.2.17)(viem@2.21.45):
     resolution: {integrity: sha512-YkTPa/CYPwdnXSFNWovp2dm1YqLAIBw464ll8D0ggEID8l91suAVh+q+eC9p4EQ3xdRkHmjrs1Tc+JUhbzS/Rw==}
     peerDependencies:
       permissionless: ^0.2.10
@@ -1168,6 +1177,7 @@ packages:
       jose: 4.15.9
       js-cookie: 3.0.5
       libphonenumber-js: 1.11.14
+      permissionless: 0.2.17(viem@2.21.45)
       set-cookie-parser: 2.7.1
       uuid: 9.0.1
       viem: 2.21.45
@@ -1190,7 +1200,7 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@privy-io/react-auth@1.94.2(@solana/web3.js@1.95.4)(bs58@4.0.1)(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106):
+  /@privy-io/react-auth@1.94.2(@solana/web3.js@1.95.4)(bs58@4.0.1)(permissionless@0.2.17)(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106):
     resolution: {integrity: sha512-JlsTP4+n2JhHJrzuPmtUF2XEJyUfGr2SYYDbhRXULxAwA0oAnou+gu2andTdGiY/j33bjY2pOAgFM0hAv3lFdQ==}
     peerDependencies:
       '@abstract-foundation/agw-client': ^0.0.1-beta.17
@@ -1222,7 +1232,7 @@ packages:
       '@heroicons/react': 2.1.5(react@19.0.0-rc-66855b96-20241106)
       '@marsidev/react-turnstile': 0.4.1(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
       '@metamask/eth-sig-util': 6.0.2
-      '@privy-io/js-sdk-core': 0.34.1(viem@2.21.45)
+      '@privy-io/js-sdk-core': 0.34.1(permissionless@0.2.17)(viem@2.21.45)
       '@simplewebauthn/browser': 9.0.1
       '@solana/wallet-adapter-base': 0.9.23(@solana/web3.js@1.95.4)
       '@solana/wallet-standard-wallet-adapter-base': 1.1.2(@solana/web3.js@1.95.4)(bs58@4.0.1)
@@ -1242,6 +1252,7 @@ packages:
       md5: 2.3.0
       mipd: 0.0.7
       ofetch: 1.4.1
+      permissionless: 0.2.17(viem@2.21.45)
       pino-pretty: 10.3.1
       qrcode: 1.5.4
       react: 19.0.0-rc-66855b96-20241106
@@ -1376,6 +1387,37 @@ packages:
         optional: true
     dependencies:
       react: 19.0.0-rc-66855b96-20241106
+    dev: false
+
+  /@radix-ui/react-dialog@1.1.2(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106):
+    resolution: {integrity: sha512-Yj4dZtqa2o+kG61fzB0H2qUvmwBA2oyQroGLyNtBj1beo1khoQ3q1a2AO8rrQYjd8256CO9+N8L9tvsS+bnIyA==}
+    peerDependencies:
+      '@types/react': '*'
+      '@types/react-dom': '*'
+      react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+      react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      '@types/react-dom':
+        optional: true
+    dependencies:
+      '@radix-ui/primitive': 1.1.0
+      '@radix-ui/react-compose-refs': 1.1.0(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-context': 1.1.1(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-dismissable-layer': 1.1.1(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-focus-guards': 1.1.1(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-focus-scope': 1.1.0(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-id': 1.1.0(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-portal': 1.1.2(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-presence': 1.1.1(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-primitive': 2.0.0(react-dom@19.0.0-rc-66855b96-20241106)(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-slot': 1.1.0(react@19.0.0-rc-66855b96-20241106)
+      '@radix-ui/react-use-controllable-state': 1.1.0(react@19.0.0-rc-66855b96-20241106)
+      aria-hidden: 1.2.4
+      react: 19.0.0-rc-66855b96-20241106
+      react-dom: 19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106)
+      react-remove-scroll: 2.6.0(react@19.0.0-rc-66855b96-20241106)
     dev: false
 
   /@radix-ui/react-direction@1.1.0(react@19.0.0-rc-66855b96-20241106):
@@ -4213,6 +4255,14 @@ packages:
 
   /pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
+    dev: false
+
+  /permissionless@0.2.17(viem@2.21.45):
+    resolution: {integrity: sha512-M2+8qXNWTo2mmiriBhCFtNUOKd8UDJ1AXNnLflJw9VePIv5PNR1QqkTa76wWb1mzoZyc1hVObmA0pi7puCBj3A==}
+    peerDependencies:
+      viem: ^2.21.22
+    dependencies:
+      viem: 2.21.45
     dev: false
 
   /picocolors@1.1.1:

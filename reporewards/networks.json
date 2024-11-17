@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "RepoRewards": {
+      "address": "0x9F0Df5d484cf185397fBcCc8A88E72fE2449760e",
+      "startBlock": 18015748
+    }
+  }
+}

@@ -1,0 +1,29 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: RepoRewards
+    network: base-sepolia
+    source:
+      address: "0x9F0Df5d484cf185397fBcCc8A88E72fE2449760e"
+      abi: RepoRewards
+      startBlock: 18015748
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - ProofVerificationFailed
+        - RepositoryRegistered
+      abis:
+        - name: RepoRewards
+          file: ./abis/RepoRewards.json
+      eventHandlers:
+        - event: ProofVerificationFailed(string,address)
+          handler: handleProofVerificationFailed
+        - event: RepositoryRegistered(string,address,uint256)
+          handler: handleRepositoryRegistered
+      file: ./src/repo-rewards.ts

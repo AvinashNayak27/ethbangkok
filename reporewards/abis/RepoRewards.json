@@ -1,0 +1,157 @@
+[
+  { "inputs": [], "stateMutability": "nonpayable", "type": "constructor" },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "repoUrl",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "ProofVerificationFailed",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "repoUrl",
+        "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "fundPoolAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "totalPullRequests",
+        "type": "uint256"
+      }
+    ],
+    "name": "RepositoryRegistered",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      { "internalType": "string", "name": "_data", "type": "string" },
+      { "internalType": "string", "name": "target", "type": "string" }
+    ],
+    "name": "extractFieldFromContext",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_data", "type": "string" }],
+    "name": "getMergedPrsCount",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "_data", "type": "string" }],
+    "name": "getRepoUrl",
+    "outputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "reclaimAddress",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "components": [
+              {
+                "internalType": "string",
+                "name": "provider",
+                "type": "string"
+              },
+              {
+                "internalType": "string",
+                "name": "parameters",
+                "type": "string"
+              },
+              { "internalType": "string", "name": "context", "type": "string" }
+            ],
+            "internalType": "struct ClaimInfo",
+            "name": "claimInfo",
+            "type": "tuple"
+          },
+          {
+            "components": [
+              {
+                "components": [
+                  {
+                    "internalType": "bytes32",
+                    "name": "identifier",
+                    "type": "bytes32"
+                  },
+                  {
+                    "internalType": "address",
+                    "name": "owner",
+                    "type": "address"
+                  },
+                  {
+                    "internalType": "uint32",
+                    "name": "timestampS",
+                    "type": "uint32"
+                  },
+                  {
+                    "internalType": "uint32",
+                    "name": "epoch",
+                    "type": "uint32"
+                  }
+                ],
+                "internalType": "struct Claim",
+                "name": "claim",
+                "type": "tuple"
+              },
+              {
+                "internalType": "bytes[]",
+                "name": "signatures",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct SignedClaim",
+            "name": "signedClaim",
+            "type": "tuple"
+          }
+        ],
+        "internalType": "struct Proof",
+        "name": "proof",
+        "type": "tuple"
+      }
+    ],
+    "name": "registerRepository",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "string", "name": "", "type": "string" }],
+    "name": "repoToFundPool",
+    "outputs": [{ "internalType": "address", "name": "", "type": "address" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

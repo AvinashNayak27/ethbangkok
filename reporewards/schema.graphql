@@ -1,0 +1,18 @@
+type ProofVerificationFailed @entity(immutable: true) {
+  id: Bytes!
+  repoUrl: String! # string
+  sender: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RepositoryRegistered @entity(immutable: true) {
+  id: Bytes!
+  repoUrl: String! # string
+  fundPoolAddress: Bytes! # address
+  totalPullRequests: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

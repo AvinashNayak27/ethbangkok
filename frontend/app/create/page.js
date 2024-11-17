@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 import { usePrivy, useLogout } from "@privy-io/react-auth";
 import { useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { useWriteContract } from "wagmi";
+import { parseEther } from "viem";
+import { useAccount } from "wagmi";
 
 export default function Create() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -22,13 +25,22 @@ export default function Create() {
   const [isSearching, setIsSearching] = useState(false);
   const [mergedPRCount, setMergedPRCount] = useState(0);
   const [repoUrl, setRepoUrl] = useState("");
+  const account = useAccount();
+  const { data: hash, writeContractAsync ,error} = useWriteContract();
 
-  const {logout} = useLogout();
+  const { logout } = useLogout();
   useEffect(() => {
     if (!user && ready) {
       router.push("/");
     }
   }, [user, ready]);
+
+
+  useEffect(() => {
+    if (error) {
+      alert(error.message);
+    }
+  }, [error]);
 
   useEffect(() => {
     const accessToken = localStorage.getItem("github_access_token");
@@ -36,7 +48,6 @@ export default function Create() {
       setGithubAccessToken(accessToken);
     }
   }, []);
-
 
   const fetchUserData = async (accessToken) => {
     const response = await fetch(`https://api.github.com/user`, {
@@ -55,7 +66,7 @@ export default function Create() {
   const searchRepositories = async (query) => {
     if (!query || !githubAccessToken) return;
     setIsSearching(true);
-    
+
     try {
       const response = await fetch(
         `https://api.github.com/search/repositories?q=${query}`,
@@ -109,13 +120,13 @@ export default function Create() {
   const parseGitHubUrl = (url) => {
     try {
       const parsedUrl = new URL(url);
-      if (parsedUrl.hostname !== 'github.com') return null;
-      
-      const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
+      if (parsedUrl.hostname !== "github.com") return null;
+
+      const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
       if (pathParts.length >= 2) {
         return {
           owner: pathParts[0],
-          repo: pathParts[1]
+          repo: pathParts[1],
         };
       }
       return null;
@@ -148,6 +159,260 @@ export default function Create() {
       await fetchRepositoryByUrl(parsed.owner, parsed.repo);
       setRepoUrl("");
     }
+  };
+
+  const registerRepository = async () => {
+    const response = await fetch(
+      "http://localhost:3001/generate-proof-for-register",
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${githubAccessToken}` },
+        body: JSON.stringify({
+          owner: selectedRepo.owner.login,
+          repo: selectedRepo.name,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const data = await response.json();
+    const proof = data.proofData;
+    await writeContractAsync({
+      address: "0x9F0Df5d484cf185397fBcCc8A88E72fE2449760e",
+      abi: [
+        {
+          inputs: [],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "string",
+              name: "repoUrl",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "sender",
+              type: "address",
+            },
+          ],
+          name: "ProofVerificationFailed",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              components: [
+                {
+                  components: [
+                    {
+                      internalType: "string",
+                      name: "provider",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "parameters",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "context",
+                      type: "string",
+                    },
+                  ],
+                  internalType: "struct ClaimInfo",
+                  name: "claimInfo",
+                  type: "tuple",
+                },
+                {
+                  components: [
+                    {
+                      components: [
+                        {
+                          internalType: "bytes32",
+                          name: "identifier",
+                          type: "bytes32",
+                        },
+                        {
+                          internalType: "address",
+                          name: "owner",
+                          type: "address",
+                        },
+                        {
+                          internalType: "uint32",
+                          name: "timestampS",
+                          type: "uint32",
+                        },
+                        {
+                          internalType: "uint32",
+                          name: "epoch",
+                          type: "uint32",
+                        },
+                      ],
+                      internalType: "struct Claim",
+                      name: "claim",
+                      type: "tuple",
+                    },
+                    {
+                      internalType: "bytes[]",
+                      name: "signatures",
+                      type: "bytes[]",
+                    },
+                  ],
+                  internalType: "struct SignedClaim",
+                  name: "signedClaim",
+                  type: "tuple",
+                },
+              ],
+              internalType: "struct Proof",
+              name: "proof",
+              type: "tuple",
+            },
+          ],
+          name: "registerRepository",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: false,
+              internalType: "string",
+              name: "repoUrl",
+              type: "string",
+            },
+            {
+              indexed: false,
+              internalType: "address",
+              name: "fundPoolAddress",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "totalPullRequests",
+              type: "uint256",
+            },
+          ],
+          name: "RepositoryRegistered",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_data",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "target",
+              type: "string",
+            },
+          ],
+          name: "extractFieldFromContext",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "pure",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_data",
+              type: "string",
+            },
+          ],
+          name: "getMergedPrsCount",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "pure",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_data",
+              type: "string",
+            },
+          ],
+          name: "getRepoUrl",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "pure",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "reclaimAddress",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          name: "repoToFundPool",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      functionName: "registerRepository",
+      args: [proof],
+    });
+
+    alert("Repository registered successfully");
   };
 
   return (
@@ -193,8 +458,10 @@ export default function Create() {
       </Dialog>
       <div className="max-w-6xl mx-auto space-y-8 mb-20 mt-20">
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-2xl font-bold mb-6 text-center">Register a Repository</h2>
-          
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Register a Repository
+          </h2>
+
           <div className="space-y-6">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -206,7 +473,7 @@ export default function Create() {
                 className="pl-10 w-full"
               />
             </div>
-            
+
             {searchResults.length > 0 && (
               <div className="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg border border-gray-200 max-h-60 overflow-auto">
                 {searchResults.map((repo) => (
@@ -216,7 +483,9 @@ export default function Create() {
                     onClick={() => handleRepoSelect(repo)}
                   >
                     <div className="font-medium">{repo.name}</div>
-                    <div className="text-sm text-gray-500">{repo.description}</div>
+                    <div className="text-sm text-gray-500">
+                      {repo.description}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -228,7 +497,9 @@ export default function Create() {
                   <span className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm w-full">
-                  <span className="px-2 text-gray-500 bg-white">or import directly from URL</span>
+                  <span className="px-2 text-gray-500 bg-white">
+                    or import directly from URL
+                  </span>
                 </div>
               </div>
             </div>
@@ -252,12 +523,21 @@ export default function Create() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedRepo.owner.avatar_url} alt="Owner avatar" />
-                    <AvatarFallback>{selectedRepo.owner.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                    <AvatarImage
+                      src={selectedRepo.owner.avatar_url}
+                      alt="Owner avatar"
+                    />
+                    <AvatarFallback>
+                      {selectedRepo.owner.login.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-xl font-semibold">{selectedRepo.name}</h3>
-                    <p className="text-sm text-gray-500">{selectedRepo.owner.login}</p>
+                    <h3 className="text-xl font-semibold">
+                      {selectedRepo.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {selectedRepo.owner.login}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
@@ -274,15 +554,10 @@ export default function Create() {
               </div>
               <p className="text-gray-600 mt-3">{selectedRepo.description}</p>
               <div className="mt-3 text-sm text-gray-500">
-                Last updated: {new Date(selectedRepo.updated_at).toLocaleDateString()}
+                Last updated:{" "}
+                {new Date(selectedRepo.updated_at).toLocaleDateString()}
               </div>
-              <Button 
-                className="w-full mt-4"
-                onClick={() => {
-                  // TODO: Implement repository registration logic
-                  console.log('Register repository:', selectedRepo);
-                }}
-              >
+              <Button className="w-full mt-4" onClick={registerRepository}>
                 Register Repository
               </Button>
             </div>
@@ -297,8 +572,8 @@ export default function Create() {
             <button
               onClick={() => router.push("/dashboard")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/dashboard" 
-                  ? "text-blue-600" 
+                router.pathname === "/dashboard"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >
@@ -308,8 +583,8 @@ export default function Create() {
             <button
               onClick={() => router.push("/create")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/create" 
-                  ? "text-blue-600" 
+                router.pathname === "/create"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >
@@ -319,8 +594,8 @@ export default function Create() {
             <button
               onClick={() => router.push("/explore")}
               className={`flex flex-col items-center space-y-1 ${
-                router.pathname === "/explore" 
-                  ? "text-blue-600" 
+                router.pathname === "/explore"
+                  ? "text-blue-600"
                   : "text-gray-600 hover:text-blue-600"
               }`}
             >

@@ -149,7 +149,6 @@ export function ResponsiveDashboard() {
     }
   };
 
-
   const attestation = async () => {
     // send a request to the backend to generate a proof
     const response = await fetch("http://localhost:3001/generate-proof", {
@@ -195,6 +194,56 @@ export function ResponsiveDashboard() {
       }
     }
   };
+
+  async function getAttestations(schemaId, attestatorAddress) {
+    const apiUrl = "https://testnet-scan.sign.global/api/scan/attestations";
+    console.log("attestatorAddress", attestatorAddress);
+    
+    // Add early return if attestatorAddress is not provided
+    if (!attestatorAddress) {
+      console.log("No attestator address provided");
+      return [];
+    }
+
+    const params = new URLSearchParams({
+      schemaId: schemaId
+    });
+
+    try {
+      const response = await fetch(`${apiUrl}?${params.toString()}`, {
+        method: "GET",
+      });
+
+      const data = await response.json();
+      
+      // Check if data has the expected structure
+      if (data?.success && data?.data?.rows) {
+        const filteredData = data.data.rows.filter(
+          (attestation) =>
+            attestation.attester.toLowerCase() === attestatorAddress.toLowerCase()
+        );
+        console.log("filteredData", filteredData);
+        return filteredData;
+      } else {
+        console.error("Unexpected data structure:", data);
+        return [];
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      return [];
+    }
+  }
+
+  const [userAttestations, setUserAttestations] = useState([]);
+
+  useEffect(() => {
+    getAttestations("onchain_evm_84532_0x4d5", embeddedWallet?.address).then(
+      (res) => {
+        setUserAttestations(res);
+        console.log(res);
+      }
+    );
+  }, [embeddedWallet?.address]);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
@@ -260,7 +309,39 @@ export function ResponsiveDashboard() {
             </CardContent>
           </Card>
 
-          <Button onClick={attestation}>Claim free .reporewards</Button>
+          <Card className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+            <CardHeader>
+              <CardTitle>RepoRewards Domain</CardTitle>
+              <CardDescription className="text-white/80">
+                {userAttestations.length > 0 
+                  ? "You've already claimed your domain!"
+                  : "Claim your free .reporewards domain"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userAttestations.length === 0 && (
+                <Button 
+                  onClick={attestation}
+                  className="bg-white text-blue-500 hover:bg-white/90"
+                >
+                  Claim Now
+                </Button>
+              )}
+              {userAttestations.length > 0 && (
+                <a 
+                  href="https://testnets.opensea.io/assets/base-sepolia/0x93c2de912407b45fc4aaccc56441ada2285eae43/70530683069318769325168725317720980562803267818375902233408550955775387214093"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button
+                    className="bg-white text-blue-500 hover:bg-white/90"
+                  >
+                    View on OpenSea
+                  </Button>
+                </a>
+              )}
+            </CardContent>
+          </Card>
         </div>
         <Card>
           <CardHeader>

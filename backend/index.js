@@ -69,6 +69,48 @@ app.post("/generate-proof", async (req, res) => {
   }
 });
 
+app.post("/generate-proof-for-register", async (req, res) => {
+  // get owner and repo name from req.body
+  const { owner, repo } = req.body;
+  console.log("req.body", req.body);
+  //headers.authorization is the github token
+  const githubToken = req.headers.authorization;
+
+  const url = `https://api.github.com/search/issues?q=type:pr+repo:${owner}/${repo}+is:merged`;
+
+  const publicOptions = {
+    method: "GET",
+    headers: {
+      accept: "application/vnd.github.v3+json",
+      "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+    },
+  };
+
+  const responseMatches = [
+    {
+      type: "regex",
+      value: '"total_count":\\s*(?<total_count>\\d+)', // Captures the total_count value
+    },
+    {
+      type: "regex",
+      value: '"repository_url":\\s*"(?<repository_url>[^"]+)"', // Captures items[0].repository_url
+    },
+  ];
+
+  const privateOptions = {
+    headers: {
+      authorization: githubToken,
+    },
+    responseMatches: responseMatches,
+  };
+
+  const proof = await client.zkFetch(url, publicOptions, privateOptions);
+  const isVerified = await verifyProof(proof);
+  const proofData = await transformForOnchain(proof);
+
+  res.json({ isVerified, proofData });
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

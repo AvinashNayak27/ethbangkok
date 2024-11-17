@@ -180,7 +180,7 @@ export function ResponsiveDashboard() {
       });
 
       const createAttestationRes = await client.createAttestation({
-        schemaId: "0x4d5",
+        schemaId: "0x4ea",
         indexingValue: "123",
         data: data,
       });
@@ -237,7 +237,7 @@ export function ResponsiveDashboard() {
   const [userAttestations, setUserAttestations] = useState([]);
 
   useEffect(() => {
-    getAttestations("onchain_evm_84532_0x4d5", embeddedWallet?.address).then(
+    getAttestations("onchain_evm_84532_0x4ea", embeddedWallet?.address).then(
       (res) => {
         setUserAttestations(res);
         console.log(res);

@@ -9,14 +9,14 @@ require("dotenv").config();
 const { createThirdwebClient, getContract, readContract } = require("thirdweb");
 const { defineChain } = require("thirdweb/chains");
 const client = createThirdwebClient({
-  secretKey: process.env.THIRDWEB_SECRET_KEY,
+  secretKey: "wz5_FTOktKXdIeOXac1i5CL3YrbeGvm7vwyoFOsdfeexotSxiA0XyFXfrpF-xjXThp2lANu0b0eJfWzMi6qNIA",
 });
 
 // connect to your contract
 const contract = getContract({
   client,
   chain: defineChain(84532),
-  address: "0x93c2dE912407b45Fc4aaCcC56441aDa2285EAE43",
+  address: "0xdDc4fE8a5900A799b4aB136276689D6ecbd027d5",
 });
 
 app.get("/", (req, res) => {

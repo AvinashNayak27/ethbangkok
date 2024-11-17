@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Home, PlusSquare, Compass } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { usePrivy, useLogout } from "@privy-io/react-auth";
-import { useEffect } from "react";
 
 export default function Explore() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -15,6 +14,7 @@ export default function Explore() {
   const { user, ready } = usePrivy();
   const [userData, setUserData] = useState(null);
   const [githubAccessToken, setGithubAccessToken] = useState(null);
+  const [repositories, setRepositories] = useState([]);
 
   const {logout} = useLogout();
   useEffect(() => {
@@ -43,6 +43,37 @@ export default function Explore() {
       fetchUserData(githubAccessToken);
     }
   }, [githubAccessToken]);
+
+  useEffect(() => {
+    const fetchRepositories = async () => {
+      try {
+        const response = await fetch('https://api.studio.thegraph.com/query/81414/reporewards/v0.0.1', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: `
+              {
+                repositoryRegistereds {
+                  id
+                  repoUrl
+                  fundPoolAddress
+                  totalPullRequests
+                }
+              }
+            `
+          }),
+        });
+        const data = await response.json();
+        setRepositories(data.data.repositoryRegistereds);
+      } catch (error) {
+        console.error('Error fetching repositories:', error);
+      }
+    };
+
+    fetchRepositories();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100 p-4 sm:p-6 md:p-8">
@@ -86,11 +117,31 @@ export default function Explore() {
         </DialogContent>
       </Dialog>
 
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8 mb-20">
         <h1 className="text-2xl font-bold">Explore</h1>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {repositories.map((repo) => (
+            <div
+              key={repo.id}
+              onClick={() => router.push(`/explore/${repo.fundPoolAddress}`)}
+              className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              <h3 className="text-lg font-semibold mb-2 truncate">
+                {repo.repoUrl.split('/').slice(-2).join('/')}
+              </h3>
+              <div className="flex items-center text-gray-600">
+                <span className="mr-2">Pull Requests:</span>
+                <span className="font-medium">{repo.totalPullRequests}</span>
+              </div>
+              <div className="mt-2 text-sm text-gray-500 truncate">
+                Pool: {repo.fundPoolAddress}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Add the mobile-optimized footer navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex justify-around py-3">

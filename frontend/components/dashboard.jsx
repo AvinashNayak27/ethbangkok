@@ -298,12 +298,22 @@ export function ResponsiveDashboard() {
                     {embeddedWallet?.address?.slice(0, 6)}...
                     {embeddedWallet?.address?.slice(-4)}
                   </span>
-                  <button
-                    aria-label="Copy wallet address"
-                    onClick={copyToClipboard}
-                  >
-                    <Copy className="h-4 w-4 cursor-pointer" />
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      aria-label="Copy wallet address"
+                      onClick={copyToClipboard}
+                    >
+                      <Copy className="h-4 w-4 cursor-pointer" />
+                    </button>
+                    <a
+                      href={`https://base-sepolia.blockscout.com/address/${embeddedWallet?.address}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="View on Explorer"
+                    >
+                      <ArrowUpRight className="h-4 w-4 cursor-pointer" />
+                    </a>
+                  </div>
                 </div>
               </div>
             </CardContent>
